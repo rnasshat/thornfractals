@@ -33,6 +33,7 @@ def drawfractal(
 ):
     """Implementation of the "Thorn fractal" or "Secant Sea" as described on http://paulbourke.net/fractals/thorn/
     plane format is (xmin, xmax, ymin, ymax)
+    coordinates start in the upper left corner, positive y is down
     """
     a = np.zeros((resolution[1], resolution[0], 3)) #Array indices are backwards relative to image coordinates
 
@@ -57,7 +58,10 @@ def drawfractal(
             a[y, x, 1] = out[1]
             a[y, x, 2] = out[2]
 
+        print(y+1, "/", resolution[1], " rows complete", end="\r")
 
+    print("\n")
+    
     im = Image.fromarray((a * 255).astype(np.uint8))
 
     fname = "thorn{0}x{1}px{2}i c{3} {4}.png".format(resolution[0], resolution[1], iterations, c, plane)
