@@ -3,6 +3,8 @@ import random
 import numpy as np
 from PIL import Image
 
+#FIXME code style is all over the place
+
 def safe_div(a, b):
     return a / b if b else 0
 
@@ -33,15 +35,15 @@ def thorn_alt(x = 0.0, y = 0.0, c = (0.0, 0.0), iterations = 256, bailout = 1000
         
     return numiter
 
-def colorfunc(val = 0.0, frequency = (5, 7, 13), phaseshift = (-0.25, -0.25, -0.25)):
+def rgb_sines(val = 0.0, frequency = (5, 7, 13), phaseshift = (0, 0, 0)):
     return np.array((
-        (sin(2*pi * val * frequency[0] + phaseshift[0]*pi)+1)/2,
-        (sin(2*pi * val * frequency[1] + phaseshift[1]*pi)+1)/2,
-        (sin(2*pi * val * frequency[2] + phaseshift[2]*pi)+1)/2
+        (sin(val * frequency[0]*2*pi + phaseshift[0]*2*pi)+1)/2,
+        (sin(val * frequency[1]*2*pi + phaseshift[1]*2*pi)+1)/2,
+        (sin(val * frequency[2]*2*pi + phaseshift[2]*2*pi)+1)/2
     ))
 
 def drawfractal(
-    fractal_func = thorn,
+    fractal_func = thorn, color_func = rgb_sines,
     resolution = (512, 512), c = (0.0, 0.0), plane = (-pi, pi, -pi, pi), iterations = 256, bailout = 10000,
     rgbfreq = (5, 7, 13), rgbphase = (-0.25, -0.25, -0.25), supersample = 1
 ):
@@ -61,7 +63,7 @@ def drawfractal(
             out = np.zeros(3)
             for ysamples in range(supersample):
                 for xsamples in range(supersample):
-                    out += colorfunc(
+                    out += color_func(
                         fractal_func(curx + xsamples*(stepx/supersample), cury + ysamples*(stepy/supersample), c, iterations, bailout)/(iterations-1),
                         rgbfreq,
                         rgbphase
@@ -87,12 +89,13 @@ def unitcircle(theta = 0.0):
 def unitcirclefuzzy(theta = 0.0):
     return (cos(theta)+random.uniform(-0.1, 0.1), sin(theta)+random.uniform(-0.1, 0.1))
 
-def tests():
-    drawfractal((1024, 768), (0.102, -0.04), (-pi, pi, -0.5*pi, 0.5*pi))    #control inputs for reference against images on the linked site
+def tests(): #TODO clean this up
+    drawfractal(resolution=(1024, 768), c=(0.102, -0.04), plane=(-pi, pi, -0.5*pi, 0.5*pi))
+    #control inputs for reference against images on the linked site
     
-    drawfractal((1600, 900), (-0.1, 0.15), (0, pi, -0.5*pi, 0.5*pi), supersample=4)
-    drawfractal((2048, 2048), (-0.1, 0.15), (0.75, 1.2566370614359172, -0.7853981633974483, -0.1), rgbphase=(1.85, 0.333, 0.666), supersample=2)
-    drawfractal((2048, 2048), (-0.1, 0.15), (0.333, 1.2566370614359172, -1.0995574287564276, 0), rgbphase=(-0.069, -0.5, 0.555), supersample=2)
-    drawfractal((2048, 2048), (-0.1, 0.15), (-pi, 0, -0.5*pi, 0.5*pi), rgbfreq=(2, 5, 23))
-    drawfractal((4096, 4096), (0,0), (-pi, pi, -0.5*pi, 1.5*pi), rgbphase=(1.46, 1.46, 1.46))
-    drawfractal((4096, 4096), (0.1*pi, -0.05*pi), (-pi, pi, -0.5*pi, 1.5*pi), rgbphase=(1.46, 1.46, 1.46))
+    drawfractal(resolution=(1600, 900), c=(-0.1, 0.15), plane=(0, pi, -0.5*pi, 0.5*pi), supersample=4)
+    drawfractal(resolution=(2048, 2048), c=(-0.1, 0.15), plane=(0.75, 1.2566370614359172, -0.7853981633974483, -0.1), rgbphase=(1.85/2, 0.333/2, 0.666/2), supersample=2)
+    drawfractal(resolution=(2048, 2048), c=(-0.1, 0.15), plane=(0.333, 1.2566370614359172, -1.0995574287564276, 0), rgbphase=(-0.069/2, -0.5/2, 0.555/2), supersample=2)
+    drawfractal(resolution=(2048, 2048), c=(-0.1, 0.15), plane=(-pi, 0, -0.5*pi, 0.5*pi), rgbfreq=(2, 5, 23))
+    drawfractal(resolution=(4096, 4096), c=(0,0), plane=(-pi, pi, -0.5*pi, 1.5*pi), rgbphase=(1.46/2, 1.46/2, 1.46/2))
+    drawfractal(resolution=(4096, 4096), c=(0.1*pi, -0.05*pi), plane=(-pi, pi, -0.5*pi, 1.5*pi), rgbphase=(1.46/2, 1.46/2, 1.46/2))
