@@ -3,19 +3,32 @@ import random
 import numpy as np
 from PIL import Image
 
+def safe_div(a, b):
+    return a / b if b else 0
+
 def thorn(x = 0.0, y = 0.0, c = (0.01, -0.01), iterations = 256, bailout = 10000):
     numiter = 0
     for i in range(iterations):
         (prevx, prevy) = (x, y)
         numiter = i
         
-        try:
-            x = prevx / cos(prevy) + c[0]
-            y = prevy / sin(prevx) + c[1]
-        except ZeroDivisionError:
-            break
+        x = safe_div(prevx, cos(prevy)) + c[0]
+        y = safe_div(prevy, sin(prevx)) + c[1]
 
         if x**2 + y**2 > bailout:
+            break
+        
+    return numiter
+
+def thorn_alt(x = 0.0, y = 0.0, c = (0.0, 0.0), iterations = 256, bailout = 10000):
+    numiter = 0
+    for i in range(iterations):
+        prev_c = c
+        numiter = i
+        
+        c = (safe_div(prev_c[0], cos(prev_c[1])) + x, safe_div(prev_c[1], sin(prev_c[0])) + y)
+
+        if c[0]**2 + c[1]**2 > bailout:
             break
         
     return numiter
@@ -28,7 +41,8 @@ def colorfunc(val = 0.0, frequency = (5, 7, 13), phaseshift = (-0.25, -0.25, -0.
     ))
 
 def drawfractal(
-    resolution = (512, 512), c = (0.01, -0.01), plane = (-pi, pi, -pi, pi), iterations = 256, bailout = 10000,
+    fractal_func = thorn,
+    resolution = (512, 512), c = (0.0, 0.0), plane = (-pi, pi, -pi, pi), iterations = 256, bailout = 10000,
     rgbfreq = (5, 7, 13), rgbphase = (-0.25, -0.25, -0.25), supersample = 1
 ):
     """Implementation of the "Thorn fractal" or "Secant Sea" as described on http://paulbourke.net/fractals/thorn/
@@ -48,7 +62,7 @@ def drawfractal(
             for ysamples in range(supersample):
                 for xsamples in range(supersample):
                     out += colorfunc(
-                        thorn(curx + xsamples*(stepx/supersample), cury + ysamples*(stepy/supersample), c, iterations, bailout)/(iterations-1),
+                        fractal_func(curx + xsamples*(stepx/supersample), cury + ysamples*(stepy/supersample), c, iterations, bailout)/(iterations-1),
                         rgbfreq,
                         rgbphase
                         )
