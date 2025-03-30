@@ -96,6 +96,6 @@ def tests(): #TODO clean this up
     drawfractal(resolution=(1600, 900), c=(-0.1, 0.15), plane=(0, pi, -0.5*pi, 0.5*pi), supersample=4)
     drawfractal(resolution=(2048, 2048), c=(-0.1, 0.15), plane=(0.75, 1.2566370614359172, -0.7853981633974483, -0.1), rgbphase=(1.85/2, 0.333/2, 0.666/2), supersample=2)
     drawfractal(resolution=(2048, 2048), c=(-0.1, 0.15), plane=(0.333, 1.2566370614359172, -1.0995574287564276, 0), rgbphase=(-0.069/2, -0.5/2, 0.555/2), supersample=2)
-    drawfractal(resolution=(2048, 2048), c=(-0.1, 0.15), plane=(-pi, 0, -0.5*pi, 0.5*pi), rgbfreq=(2, 5, 23))
+    drawfractal(resolution=(2048, 2048), c=(-0.1, 0.15), plane=(-pi, 0, -0.5*pi, 0.5*pi), rgbphase=(-0.125, -0.125, -0.125), rgbfreq=(2, 5, 23))
     drawfractal(resolution=(4096, 4096), c=(0,0), plane=(-pi, pi, -0.5*pi, 1.5*pi), rgbphase=(1.46/2, 1.46/2, 1.46/2))
     drawfractal(resolution=(4096, 4096), c=(0.1*pi, -0.05*pi), plane=(-pi, pi, -0.5*pi, 1.5*pi), rgbphase=(1.46/2, 1.46/2, 1.46/2))
