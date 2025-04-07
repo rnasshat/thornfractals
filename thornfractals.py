@@ -1,4 +1,4 @@
-from math import pi, sin, cos
+from math import pi, tau, sin, cos
 import random
 import numpy as np
 from PIL import Image
@@ -8,7 +8,34 @@ from PIL import Image
 def safe_div(a, b):
     return a / b if b else 0
 
+def oklch_to_srgb(color = (1, 0, 0)): #Modified from code on https://bottosson.github.io/posts/oklab/
+    a = color[1] * cos(np.deg2rad(color[2]))
+    b = color[1] * sin(np.deg2rad(color[2]))
+
+    l_ = color[0] + 0.3963377774 * a + 0.2158037573 * b
+    m_ = color[0] - 0.1055613458 * a - 0.0638541728 * b
+    s_ = color[0] - 0.0894841775 * a - 1.2914855480 * b
+    
+    l = l_*l_*l_
+    m = m_*m_*m_
+    s = s_*s_*s_
+    
+    def srgb(x):
+        if x >= 0.0031308:
+            return 1.055 * (x**(1.0/2.4)) - 0.055
+        else:
+            return 12.92 * x
+
+    return (
+        min(max(srgb(+4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s), 0.0), 1.0),
+		min(max(srgb(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s), 0.0), 1.0),
+		min(max(srgb(-0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s), 0.0), 1.0))
+
 def thorn(x = 0.0, y = 0.0, c = (0.01, -0.01), iterations = 256, bailout = 10000):
+    """Implementation of the "Thorn fractal" or "Secant Sea" as described on http://paulbourke.net/fractals/thorn/
+    plane format is (xmin, xmax, ymin, ymax)
+    coordinates start in the upper left corner, positive y is down
+    """
     numiter = 0
     for i in range(iterations):
         (prevx, prevy) = (x, y)
@@ -23,6 +50,7 @@ def thorn(x = 0.0, y = 0.0, c = (0.01, -0.01), iterations = 256, bailout = 10000
     return numiter/(iterations-1)
 
 def thorn_alt(x = 0.0, y = 0.0, c = (0.0, 0.0), iterations = 256, bailout = 10000):
+    """Variant on the thorn fractal ("Mandelbrot" type)"""
     numiter = 0
     for i in range(iterations):
         prev_c = c
@@ -36,21 +64,21 @@ def thorn_alt(x = 0.0, y = 0.0, c = (0.0, 0.0), iterations = 256, bailout = 1000
     return numiter/(iterations-1)
 
 def rgb_sines(val = 0.0, frequency = (5, 7, 13), phase = (-0.25, -0.25, -0.25)):
+    """coloring function"""
     return np.array((
         (sin(val * frequency[0]*2*pi + phase[0]*2*pi)+1)/2,
         (sin(val * frequency[1]*2*pi + phase[1]*2*pi)+1)/2,
-        (sin(val * frequency[2]*2*pi + phase[2]*2*pi)+1)/2
-    ))
+        (sin(val * frequency[2]*2*pi + phase[2]*2*pi)+1)/2))
+    
+def oklch_cycle(val = 0.0, l = 1, c = 0.34, frequency = 360, offset = 0):
+    """coloring function"""
+    return np.array(oklch_to_srgb((l, c, val * frequency + offset)))
 
 def drawfractal(
     resolution = (512, 512), plane = (-pi, pi, -pi, pi), supersample = 1, *,
     fractal_func = thorn, color_func = rgb_sines,
     fractal_func_args = None, color_func_args = None,
 ):
-    """Implementation of the "Thorn fractal" or "Secant Sea" as described on http://paulbourke.net/fractals/thorn/
-    plane format is (xmin, xmax, ymin, ymax)
-    coordinates start in the upper left corner, positive y is down
-    """
     if color_func_args is None:
         color_func_args = {}
     if fractal_func_args is None:
