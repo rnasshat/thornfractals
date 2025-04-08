@@ -8,7 +8,21 @@ from PIL import Image
 def safe_div(a, b):
     return a / b if b else 0
 
-def oklch_to_srgb(color = (1, 0, 0)): #Modified from code on https://bottosson.github.io/posts/oklab/
+def linear_to_srgb(x):
+    x = min(max(x, 0.0), 1.0)
+    if x >= 0.0031308:
+        return 1.055 * (x**(1.0/2.4)) - 0.055
+    else:
+        return 12.92 * x
+
+def srgb_to_linear(x):
+    x = min(max(x, 0.0), 1.0)
+    if x >= 0.04045:
+        return ((x + 0.055)/(1.055))**2.4
+    else:
+        return x / 12.92
+
+def oklch_to_rgb(color = (1, 0, 0)): #Modified from code on https://bottosson.github.io/posts/oklab/
     a = color[1] * cos(np.deg2rad(color[2]))
     b = color[1] * sin(np.deg2rad(color[2]))
 
@@ -20,16 +34,10 @@ def oklch_to_srgb(color = (1, 0, 0)): #Modified from code on https://bottosson.g
     m = m_*m_*m_
     s = s_*s_*s_
     
-    def srgb(x):
-        if x >= 0.0031308:
-            return 1.055 * (x**(1.0/2.4)) - 0.055
-        else:
-            return 12.92 * x
-
     return (
-        min(max(srgb(+4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s), 0.0), 1.0),
-		min(max(srgb(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s), 0.0), 1.0),
-		min(max(srgb(-0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s), 0.0), 1.0))
+        +4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+		-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+		-0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s)
 
 def thorn(x = 0.0, y = 0.0, c = (0.01, -0.01), iterations = 256, bailout = 10000):
     """Implementation of the "Thorn fractal" or "Secant Sea" as described on http://paulbourke.net/fractals/thorn/
@@ -66,19 +74,19 @@ def thorn_alt(x = 0.0, y = 0.0, c = (0.0, 0.0), iterations = 256, bailout = 1000
 def rgb_sines(val = 0.0, frequency = (5, 7, 13), phase = (-0.25, -0.25, -0.25)):
     """coloring function"""
     return np.array((
-        (sin(val * frequency[0]*2*pi + phase[0]*2*pi)+1)/2,
-        (sin(val * frequency[1]*2*pi + phase[1]*2*pi)+1)/2,
-        (sin(val * frequency[2]*2*pi + phase[2]*2*pi)+1)/2))
+        (sin(val * frequency[0]*tau + phase[0]*tau)+1)/2,
+        (sin(val * frequency[1]*tau + phase[1]*tau)+1)/2,
+        (sin(val * frequency[2]*tau + phase[2]*tau)+1)/2))
     
 def oklch_cycle(val = 0.0, l = 1, c = 0.34, frequency = 360, offset = 0):
     """coloring function"""
-    return np.array(oklch_to_srgb((l, c, val * frequency + offset)))
+    return np.array(oklch_to_rgb((l, c, val * frequency + offset)))
 
 def drawfractal(
     resolution = (512, 512), plane = (-pi, pi, -pi, pi), supersample = 1, *,
     fractal_func = thorn, color_func = rgb_sines,
-    fractal_func_args = None, color_func_args = None,
-):
+    fractal_func_args = None, color_func_args = None):
+    
     if color_func_args is None:
         color_func_args = {}
     if fractal_func_args is None:
@@ -100,16 +108,14 @@ def drawfractal(
                                                 curx + xsamples*(stepx/supersample),
                                                 cury + ysamples*(stepy/supersample),
                                                 **fractal_func_args),
-                                    **color_func_args
-                        )
-            out /= (supersample**2)
-                    
-            a[y, x, 0] = out[0]
-            a[y, x, 1] = out[1]
-            a[y, x, 2] = out[2]
-
+                                    **color_func_args)
+                    if supersample > 1:
+                        out /= 2
+            
+            a[y, x, 0] = linear_to_srgb(out[0])
+            a[y, x, 1] = linear_to_srgb(out[1])
+            a[y, x, 2] = linear_to_srgb(out[2])
         print(y+1, "/", resolution[1], " rows complete", end="\r")
-
     print("\n")
     
     im = Image.fromarray((a * 255).astype(np.uint8))
