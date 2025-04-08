@@ -9,11 +9,10 @@ def safe_div(a, b):
     return a / b if b else 0
 
 def linear_to_srgb(x):
-    x = min(max(x, 0.0), 1.0)
     if x >= 0.0031308:
-        return 1.055 * (x**(1.0/2.4)) - 0.055
+        return min(max(1.055 * (x**(1.0/2.4)) - 0.055, 0.0), 1.0)
     else:
-        return 12.92 * x
+        return min(max(12.92 * x, 0.0), 1.0)
 
 def srgb_to_linear(x):
     x = min(max(x, 0.0), 1.0)
@@ -109,8 +108,7 @@ def drawfractal(
                                                 cury + ysamples*(stepy/supersample),
                                                 **fractal_func_args),
                                     **color_func_args)
-                    if supersample > 1:
-                        out /= 2
+            out /= supersample**2
             
             a[y, x, 0] = linear_to_srgb(out[0])
             a[y, x, 1] = linear_to_srgb(out[1])
