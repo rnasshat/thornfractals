@@ -99,16 +99,22 @@ def drawfractal(
         for x in range(resolution[0]):
             curx = plane[0] + x*stepx
 
-            out = np.zeros(3)
-            for ysamples in range(supersample):
-                for xsamples in range(supersample):
-                    out += color_func( #color_func expects a single float followed by arguments
-                                    fractal_func( #fractal_func expects two floats x, y followed by arguments
-                                                curx + xsamples*(stepx/supersample),
-                                                cury + ysamples*(stepy/supersample),
-                                                **fractal_func_args),
-                                    **color_func_args)
-            out /= supersample**2
+            out = color_func( #color_func expects a single float followed by arguments
+                            fractal_func( #fractal_func expects two floats x, y followed by arguments
+                                        curx,
+                                        cury,
+                                        **fractal_func_args),
+                            **color_func_args)
+            if supersample > 1:
+                for ysamples in range(supersample + 1):
+                    for xsamples in range(supersample + 1):
+                        out += color_func(
+                                        fractal_func(
+                                                    curx - stepx/2.0 + xsamples*stepx/supersample,
+                                                    cury - stepy/2.0 + ysamples*stepy/supersample,
+                                                    **fractal_func_args),
+                                        **color_func_args)
+                out /= (supersample + 1)**2 + 1
             
             a[y, x, 0] = linear_to_srgb(out[0])
             a[y, x, 1] = linear_to_srgb(out[1])
