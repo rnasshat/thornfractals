@@ -69,6 +69,21 @@ def thorn_alt(x = 0.0, y = 0.0, c = (0.0, 0.0), iterations = 256, bailout = 1000
             break
         
     return numiter/(iterations-1)
+    
+def mandelbrot(x = 0.0, y = 0.0, power = 2, iterations = 256, bailout = 2):
+    num_iter = 0
+    z = complex(0, 0)
+    c = complex(x, y)
+    for i in range(iterations):
+        prev_z = z
+        num_iter += 1
+        
+        z = prev_z**power + c
+        
+        if z.real**2 + z.imag**2 > bailout**2:
+            break
+        
+    return num_iter/iterations
 
 def rgb_sines(val = 0.0, frequency = (5, 7, 13), phase = (-0.25, -0.25, -0.25)):
     """coloring function"""
@@ -77,7 +92,7 @@ def rgb_sines(val = 0.0, frequency = (5, 7, 13), phase = (-0.25, -0.25, -0.25)):
         (sin(val * frequency[1]*tau + phase[1]*tau)+1)/2,
         (sin(val * frequency[2]*tau + phase[2]*tau)+1)/2))
     
-def oklch_cycle(val = 0.0, l = 1, c = 0.34, frequency = 360, offset = 0):
+def oklch_cycle(val = 0.0, l = 0.73, c = 0.12, frequency = 360, offset = 0):
     """coloring function"""
     return np.array(oklch_to_rgb((l, c, val * frequency + offset)))
 
