@@ -1,5 +1,4 @@
 from math import pi, tau, sin, cos
-import random
 import numpy as np
 from PIL import Image
 
@@ -43,32 +42,32 @@ def thorn(x = 0.0, y = 0.0, c = (0.01, -0.01), iterations = 256, bailout = 10000
     plane format is (xmin, xmax, ymin, ymax)
     coordinates start in the upper left corner, positive y is down
     """
-    numiter = 0
+    num_iter = 0
     for i in range(iterations):
-        (prevx, prevy) = (x, y)
-        numiter = i
+        (prev_x, prev_y) = (x, y)
+        num_iter = i
         
-        x = safe_div(prevx, cos(prevy)) + c[0]
-        y = safe_div(prevy, sin(prevx)) + c[1]
+        x = safe_div(prev_x, cos(prev_y)) + c[0]
+        y = safe_div(prev_y, sin(prev_x)) + c[1]
 
         if x**2 + y**2 > bailout:
             break
         
-    return numiter/(iterations-1)
+    return num_iter/(iterations-1)
 
 def thorn_alt(x = 0.0, y = 0.0, c = (0.0, 0.0), iterations = 256, bailout = 10000):
     """Variant on the thorn fractal ("Mandelbrot" type)"""
-    numiter = 0
+    num_iter = 0
     for i in range(iterations):
         prev_c = c
-        numiter = i
+        num_iter = i
         
         c = (safe_div(prev_c[0], cos(prev_c[1])) + x, safe_div(prev_c[1], sin(prev_c[0])) + y)
 
         if c[0]**2 + c[1]**2 > bailout:
             break
         
-    return numiter/(iterations-1)
+    return num_iter/(iterations-1)
     
 def mandelbrot(x = 0.0, y = 0.0, power = 2, iterations = 256, bailout = 2):
     num_iter = 0
@@ -146,12 +145,6 @@ def drawfractal(
                                                     fractal_func_args["c"] if "c" in fractal_func_args else "",
                                                     plane)
     im.save(fname)
-
-def unitcircle(theta = 0.0):
-    return (cos(theta), sin(theta))
-
-def unitcirclefuzzy(theta = 0.0):
-    return (cos(theta)+random.uniform(-0.1, 0.1), sin(theta)+random.uniform(-0.1, 0.1))
 
 def tests():
     drawfractal( #control inputs
